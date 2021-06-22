@@ -1,0 +1,5 @@
+git add .  
+git commit -m 
+git remote add origin ** 关联远程仓库
+git push  -u origin master   简写成git push
+git pull
