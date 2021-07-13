@@ -358,6 +358,67 @@ SB
     
         小根堆的方案只要求k个元素的空间  而大根堆需要装下所有元素
 
+根据先序加中序求后序 或者中序加后续求先序
+利用先序遍历中任何树树的第一个都是后续遍历中树的最后一个节点这个关系 递归填值
+然后根据中序数组来确定左子树和右子树的规模(先序遍历的第一个节点为头节点 在中序遍历中的位置)
+将递归行为划分为左子树 右子树分别递归
+其中根据头结点去查询中序数组中位置的过程可以利用辅助空间去加速(Map)
+pre,in,pos三种顺序的数组分别从i~j，i~j，i~j填值
+public  static void preAndInToPosArray(int[] pre  , int[] in , int[]pos , int prei, int prej , int ini, int inj, int posi, int  posj){
+	    if (prei>prej){
+	        return ;
+        }
+	    // 切分到只剩一个元素
+        //先序遍历中的第一个节点是后续遍历中的最后一个节点
+//	    if (prei ==prej){
+//	        pos[posj] = pre[prei];
+//	        return ;
+//        }
+        pos[posj]=pre[prei];
+	    int find = ini ;
+	    for(;find<=inj;find++){
+	        if (in[find]==pre[prei]){
+	            break;
+            }
+        }
+
+//        int[] pre = { 1, 2, 4, 5, 3, 6, 7 };
+//        int[] in = { 4, 2, 5, 1, 6, 3, 7 };
+//        0 0 0 0 0 0 1
+//        0 0 2 0 0 0 1
+//        4 0 2 0 0 0 1
+//        4 5 2 0 0 0 1
+//        4 5 2 0 0 3 1
+//        4 5 2 6 0 3 1
+//        4 5 2 6 7 3 1
+//        4 5 2 6 7 3 1
+
+        // 原理 每次从先序遍历中取第一个元素 然后找到这个元素的中序遍历的位置根据这个位置将先序遍历数组分成左右两部分，分别代表左子树和右子树
+        // 每次都是取子树的头节点 也就是先序遍历数组的第一个节点 填到对应的后续遍历子数组的最后一个节点
+        // 即先序遍历中子树的第一个节点(当前子树的头结点)都是后续遍历中的最后一个节点(当前子树的头结点)
+        preAndInToPosArray(pre,in,pos,prei+1,prei+find-ini,ini,find-1,posi,posi+find-ini-1);
+	    // 每次都是填的每个子数组的最后一个元素 所以posj-1 因为这个位置的值每次都要被填写
+        preAndInToPosArray(pre,in,pos,prei+find-ini+1,prej,find+1,inj,posi+find-ini,posj-1);
+
+    }
+
+    // 根据中序和后序遍历得到先序遍历结果 同理
+    public static void inAndPosArrayToPreArray(int[] pre ,int[] in,int[]pos,int prei ,int prej ,int ini ,int inj ,int posi ,int posj){
+        if (prei>prej){
+            return ;
+        }
+        pre[prei]=pos[posj];
+        int find = ini ;
+        for(;find<=inj;find++){
+            if (in[find]==pre[prei]){
+                break;
+            }
+        }
+
+        inAndPosArrayToPreArray(pre,in,pos,prei+1,prei+find-ini,ini,find-1,posi,posi+find-ini-1);
+        inAndPosArrayToPreArray(pre,in,pos,prei+find-ini+1,prej,find+1,inj,posi+find-ini,posj-1);
+
+	}
 
 求完全二叉树的节点个数
 1. 过整个二叉树一遍 O（N）级别
@@ -387,6 +448,7 @@ SB
         }
         dp[i]=max+1;
         遍历数组中每次去找0~i中比大于arr[i]的最大dp值， n*n 复杂度
+
         改进方法 不再每次都去找数组左边比当前元素大的元素
         准备一个ends数组 ends[i]有效时s ends[i]表示所有长度为i+1的递增子序列中最小结尾
         一开始ends整个数组全部无效 当arr数组来到0位置上 dp0=1
@@ -401,5 +463,15 @@ SB
         找到了 就更新有效区
         有效区中元素连同左侧所有元素的个数和就是以这个元素结尾的最长子序列长度
         遍历中二分 n*lgN的复杂度
+        经典解法中(也就是动态规划n^2)动态规划过程中存在枚举行为(每次都去0~n-1中数组值大于arr[N]的并且dp数组中的最大值)
+        而改进方法在动态规划中构建了一个满足单调性的辅助空间来帮助加速  枚举行为可以用单调性的优化(一种优化思想)
         
 
+
+        给定一个整数数组A，长度为n，有 1 <= A[i] <= n，且对于[1,n]的整数，其 中部分整数会重复出现而部分不会出现。 实现算法找到[1,n]中所有未出现在A中的整数
+        要求：试实现O(n)的时间复杂度和O(1)的空间复杂度
+        方法：
+            尽量让下标为i的位置上放的值为i+1,对数组中每个元素做这个操作
+            然后遍历一遍元素,下标为i的元素的值不为i+1的就输出
+
+看到子串或者子数组问题 就想为i结尾的情况怎么怎么样来递归
