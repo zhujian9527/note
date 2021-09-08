@@ -1,0 +1,91 @@
+给你一个整数数组 arr ，以及 a、b 、c 三个整数。请你统计其中好三元组的数量。
+
+如果三元组 (arr[i], arr[j], arr[k]) 满足下列全部条件，则认为它是一个 好三元组 。
+
+0 <= i < j < k < arr.length
+|arr[i] - arr[j]| <= a
+|arr[j] - arr[k]| <= b
+|arr[i] - arr[k]| <= c
+其中 |x| 表示 x 的绝对值。
+
+返回 好三元组的数量 。
+
+来源：力扣（LeetCode）
+链接：https://leetcode-cn.com/problems/count-good-triplets
+著作权归领扣网络所有。商业转载请联系官方授权，非商业转载请注明出处。
+
+
+1 暴力
+```
+class Solution {
+    public int countGoodTriplets(int[] arr, int a, int b, int c) {
+        int count =0 ;
+        for(int i =0 ; i<arr.length ; i++){
+            for(int j =i+1 ; j<arr.length ; j++){
+                if (Math.abs(arr[i]-arr[j])>a){
+                    continue ;
+                }
+                for( int k=j+1 ;k<arr.length ; k++){
+
+                    if(  Math.abs(arr[j]-arr[k])<=b &&Math.abs(arr[i]-arr[k])<=c ){
+                        count++;
+                    }
+                }
+            }
+        }
+      return count ;
+    }
+}
+```
+
+2 暴力优化成O(n^2)
+  定义一个数组sum  
+  sum[i]表示在原数组arr中,下标小于j的arr数组中的前0~j-1的数组中值小于等于i的个数
+  下标小于j也就是下标i能取到的范围
+  如果 存在j k 满足 |arr[j]-arr[k]|<=b 
+  这个时候下标i要满足 i<j 而且arr[i]的范围要在  [arr[j]-a,arr[j]+a] 以及 [arr[k]-c,arr[k]+c]
+  同时arr[i]本身题目规定的范围是[1,1000],所以
+  arr[i]范围在三者的交集中  求出arr[i]值的范围假设为[L,R]
+  而已知sum，可以知道i在小于j的情况下的arr数组中小于等于L的个数 arr[L] 和小于等于R的个数sum[R]
+  但这里要注意  求值在[L,R]的个数是要用sum[R]-sum[L-1],表示小于等于R但大于L-1(L-1,R]
+  这里要注意下标越界的情况 L=0,会越界 需要单独讨论 L=0,[0,R]范围就是arr[R] 因为题目规定arr在[0,1000]范围
+  所以sum可以取到sum[1000],所以sum长度为1001
+```
+ class Solution {
+    public int countGoodTriplets(int[] arr, int a, int b, int c) {
+            int[] sum = new int[1001];
+            int ans = 0 ;
+            for(int j =0 ; j<arr.length ; j++){
+                for(int k =j+1 ; k<arr.length ; k++){
+                    // j k 满足条件时，求此时满足条件的i的个数
+                    if (Math.abs(arr[j]-arr[k])<=b){
+                        int lj =arr[j]-a;
+                        int rj = arr[j]+a;
+                        int lk = arr[k]-c;
+                        int rk = arr[k]+c;
+                        //计算此时arr[i]值的左右边界
+                        int l = Math.max(0,Math.max(lj,lk));
+                        int r = Math.min(1000,Math.min(rj,rk));
+                        //此时有解空间的时候
+                        if (l<=r){
+                            //分类讨论0是怕sum[l-1]溢出
+                            if (l==0){
+                                ans+=sum[r];
+                            }else{
+                                ans+=sum[r]-sum[l-1];
+                            }
+                        }
+
+                    }
+                }
+                // sum[n] 表示在i小于j的情况下 即arr数组中下标为[0,j-1]的数中小于等于n的个数
+                //在j要+1之前统计此时数组中小于等于arr[j]的个数
+                //假设 arr[j]此时等于120 那么sum[120 ...]都需要加一 
+                for(int k= arr[j];k<1001;k++){
+                    sum[k]++;
+                }
+            }
+            return ans ;
+    }
+}
+```
